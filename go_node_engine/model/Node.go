@@ -2,6 +2,13 @@ package model
 
 import (
 	"fmt"
+	"go_node_engine/logger"
+	"net"
+	"os"
+	"strconv"
+	"sync"
+	"time"
+
 	"github.com/jaypipes/ghw"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/disk"
@@ -9,11 +16,6 @@ import (
 	"github.com/shirou/gopsutil/load"
 	"github.com/shirou/gopsutil/mem"
 	psnet "github.com/shirou/gopsutil/net"
-	"go_node_engine/logger"
-	"net"
-	"os"
-	"strconv"
-	"sync"
 )
 
 const (
@@ -37,6 +39,7 @@ type Node struct {
 	Technology     []string          `json:"technology"`
 	Overlay        bool
 	NetManagerPort int
+	Timestamp      int64 `json:"timestamp"`
 }
 
 var once sync.Once
@@ -64,6 +67,7 @@ func GetDynamicInfo() Node {
 		CpuCores:   node.CpuCores,
 		MemoryUsed: node.MemoryUsed,
 		MemoryMB:   node.MemoryMB,
+		Timestamp:  time.Now().UnixMilli(),
 	}
 }
 

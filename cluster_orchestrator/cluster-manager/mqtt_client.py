@@ -4,8 +4,9 @@ import json
 from datetime import datetime
 import paho.mqtt.client as paho_mqtt
 
-from mongodb_client import mongo_find_node_by_id_and_update_cpu_mem, mongo_update_job_deployed, mongo_find_job_by_id, \
+from mongodb_client import mongo_find_node_by_id_and_update_cpu_mem, mongo_update_node_aoi, mongo_update_job_deployed, mongo_find_job_by_id, \
     mongo_update_service_resources
+from aoi_manager import calculate_aoi
 
 mqtt = None
 app = None
@@ -47,7 +48,15 @@ def handle_mqtt_message(client, userdata, message):
         mem_used = payload.get('memory')
         cpu_cores_free = payload.get('free_cores')
         memory_free_in_MB = payload.get('memory_free_in_MB')
+        timestamp = payload.get('timestamp')
         mongo_find_node_by_id_and_update_cpu_mem(client_id, cpu_used, cpu_cores_free, mem_used, memory_free_in_MB)
+        # The AOI for each node is currently stored in cluster orch's local memory;
+        # we could discuss the necessity of persisting this in MongoDB.
+        average_aoi, peak_aoi = calculate_aoi(client_id, timestamp)
+        app.logger.info('\%\%\%\%\%\%\% Average AOI for client ' + client_id + ': ' + str(average_aoi) + '\%\%\%\%\%\%\%\%\%')
+        app.logger.info('\%\%\%\%\%\%\% Peak AOI for client ' + client_id + ': ' + str(peak_aoi) + '\%\%\%\%\%\%\%\%\%')
+        mongo_update_node_aoi(client_id, average_aoi, peak_aoi)
+
     if re_job_deployment_topic is not None:
         sname = payload.get('sname')
         status = payload.get('status')
@@ -94,5 +103,12 @@ def mqtt_publish_edge_delete(worker_id, job_name, instance_number, runtime='dock
         'job_name': job_name,
         'virtualization':runtime,
         "instance_number": int(instance_number)
+    }
+    mqtt.publish(topic, json.dumps(data))
+
+def mqtt_publish_cadence_update(worker_id, cadence):
+    topic = 'nodes/' + worker_id + '/control/update/cadence'
+    data = {
+        'cadence': cadence
     }
     mqtt.publish(topic, json.dumps(data))

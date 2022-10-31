@@ -80,6 +80,18 @@ def mongo_find_node_by_id_and_update_cpu_mem(node_id, node_cpu_used, cpu_cores_f
 
     return 1
 
+def mongo_update_node_aoi(node_id, average_aoi, peak_aoi):
+    global app, mongo_nodes
+    app.logger.info('MONGODB - update aoi for node {0} ...'.format(node_id))
+    res = mongo_nodes.db.nodes.find_one_and_update(
+        {'_id': ObjectId(node_id)},
+        {'$set': {
+            'average_aoi': average_aoi,
+            'peak_aoi': peak_aoi
+        }})
+    app.logger.info(res)
+
+    return 1
 
 def find_one_edge_node():
     """Find first occurrence of edge nodes"""

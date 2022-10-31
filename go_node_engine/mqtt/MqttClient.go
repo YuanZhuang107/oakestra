@@ -3,12 +3,13 @@ package mqtt
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/eclipse/paho.mqtt.golang"
 	"go_node_engine/logger"
 	"go_node_engine/model"
 	"go_node_engine/virtualization"
 	"strings"
 	"time"
+
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
 var TOPICS = make(map[string]mqtt.MessageHandler)
@@ -64,6 +65,7 @@ func InitMqtt(clientid string, brokerurl string, brokerport string) {
 
 	TOPICS[fmt.Sprintf("nodes/%s/control/deploy", clientID)] = deployHandler
 	TOPICS[fmt.Sprintf("nodes/%s/control/delete", clientID)] = deleteHandler
+	TOPICS[fmt.Sprintf("nodes/%s/control/update/cadence", clientID)] = updateCadenceHandler
 
 	opts := mqtt.NewClientOptions()
 	opts.AddBroker(fmt.Sprintf("tcp://%s:%s", BrokerUrl, BrokerPort))
@@ -129,6 +131,10 @@ func deleteHandler(client mqtt.Client, msg mqtt.Message) {
 	}
 	service.Status = model.SERVICE_UNDEPLOYED
 	ReportServiceStatus(service)
+}
+
+func updateCadenceHandler(client mqtt.Client, msg mqtt.Message) {
+	logger.InfoLogger().Printf("Received update cadence request with payload: %s", string(msg.Payload()))
 }
 
 func ReportServiceStatus(service model.Service) {
