@@ -66,8 +66,8 @@ def mongo_find_node_by_id_and_update_cpu_mem(node_id, node_cpu_used, cpu_cores_f
                                              node_memory_free_in_MB):
     global app, mongo_nodes
     app.logger.info('MONGODB - update cpu and memory of worker node {0} ...'.format(node_id))
-    # o = mongo.db.nodes.find_one({'_id': node_id})
-    # print(o)
+    o = mongo_nodes.db.nodes.find_one({'_id': node_id})
+    print(o)
 
     time_now = datetime.now()
 
@@ -106,6 +106,10 @@ def find_all_nodes():
 
 def mongo_dead_nodes():
     print('looking for dead nodes')
+    global mongo_nodes
+    nodes = find_all_nodes()
+    for n in nodes:
+        mongo_nodes.db.nodes.find_one_and_delete({'_id': ObjectId(n.get('_id'))})
 
 
 def mongo_aggregate_node_information(TIME_INTERVAL):
@@ -144,7 +148,7 @@ def mongo_aggregate_node_information(TIME_INTERVAL):
                     technology.append(t) if t not in technology else technology
 
             else:
-                print('Node {0} is inactive.'.format(n.get('_id')))
+                print('Node {0} is inactive.'.format(n.get('_id')))    
         except Exception as e:
             print("Problem during the aggregation of the data, skipping the node: ", str(n), " - because - ", str(e))
 

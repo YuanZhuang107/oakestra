@@ -55,7 +55,7 @@ def handle_mqtt_message(client, userdata, message):
         average_aoi, peak_aoi = calculate_aoi(client_id, timestamp)
         app.logger.info('\%\%\%\%\%\%\% Average AOI for client ' + client_id + ': ' + str(average_aoi) + '\%\%\%\%\%\%\%\%\%')
         app.logger.info('\%\%\%\%\%\%\% Peak AOI for client ' + client_id + ': ' + str(peak_aoi) + '\%\%\%\%\%\%\%\%\%')
-        mongo_update_node_aoi(client_id, average_aoi, peak_aoi)
+        # mongo_update_node_aoi(client_id, average_aoi, peak_aoi)
 
     if re_job_deployment_topic is not None:
         sname = payload.get('sname')

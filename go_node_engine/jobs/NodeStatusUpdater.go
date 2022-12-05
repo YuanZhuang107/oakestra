@@ -23,9 +23,9 @@ func updateRoutine(cadence time.Duration, statusUpdateHandler func(node model.No
 		select {
 		case <-time.After(cadence):
 			nodeInfo := model.GetDynamicInfo()
-			if nodeInfo.CpuUsage > CPU_THRESHOLD || nodeInfo.MemoryUsed > MEM_THRESHOLD {
-				statusUpdateHandler(nodeInfo)
-			}
+			// if nodeInfo.CpuUsage > CPU_THRESHOLD || nodeInfo.MemoryUsed > MEM_THRESHOLD {
+			statusUpdateHandler(nodeInfo)
+			// }
 		}
 	}
 }

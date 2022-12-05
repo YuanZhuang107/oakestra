@@ -74,6 +74,7 @@ def greedy_load_balanced_algorithm(job, active_clusters=None):
         vgpu = job.get('vgpu')
 
     for cluster in active_clusters:
+        print('active cluster', cluster)
         if does_cluster_respects_requirements(extract_specs(cluster), job):
             qualified_clusters.append(cluster)
 
@@ -131,6 +132,8 @@ def does_cluster_respects_requirements(cluster_specs, job):
         vgpu = job.get('vgpu')
 
     virtualization = job.get('virtualization')
+
+    print('cluster spec', cluster_specs, vcpu, memory, vgpu, virtualization)
 
     if cluster_specs['available_cpu'] >= vcpu and \
             cluster_specs['available_memory'] >= memory and \

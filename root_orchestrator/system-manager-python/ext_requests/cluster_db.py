@@ -93,3 +93,6 @@ def mongo_update_cluster_information(cluster_id, data):
                   'last_modified': datetime_now, 'last_modified_timestamp': datetime_now_timestamp,
                   'worker_groups': worker_groups}},
         upsert=True)
+
+def mongo_delete_cluster(cluster_id):
+    db.mongo_clusters.db.clusters.find_one_and_delete({'_id': ObjectId(cluster_id)})

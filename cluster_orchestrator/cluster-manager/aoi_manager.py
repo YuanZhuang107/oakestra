@@ -17,7 +17,7 @@ def calculate_aoi(client_id, timestamp):
       'areas': [0.0],
       'timestamps': [timestamp],
       'area_sum': 0.0,
-      'max_aoi': 0.0,
+      'peak_aoi': 0.0,
     }
     aoi_by_client[client_id] = current_aggregation
     return 0.0, 0.0

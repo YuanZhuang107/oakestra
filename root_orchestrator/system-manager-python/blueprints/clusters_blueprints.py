@@ -11,7 +11,7 @@ from ext_requests.cluster_requests import cluster_request_to_delete_job, cluster
 from services.service_management import delete_service
 from ext_requests.apps_db import mongo_update_job_status
 from ext_requests.cluster_db import mongo_get_all_clusters, mongo_find_all_active_clusters, \
-    mongo_update_cluster_information, mongo_find_cluster_by_id
+    mongo_update_cluster_information, mongo_find_cluster_by_id, mongo_delete_cluster
 from services.instance_management import instance_scale_up_scheduled_handler
 
 clustersbp = Blueprint(
@@ -92,4 +92,8 @@ class ClusterController(MethodView):
                 # cluster has outdated jobs, ask to undeploy
                 cluster_request_to_delete_job_by_ip(j.get('system_job_id'), -1, request.remote_addr)
 
+        return 'ok'
+
+    def delete(self, *args, **kwargs):
+        mongo_delete_cluster(kwargs['clusterid'])
         return 'ok'
