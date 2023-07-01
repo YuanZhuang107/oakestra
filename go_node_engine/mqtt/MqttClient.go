@@ -3,6 +3,7 @@ package mqtt
 import (
 	"encoding/json"
 	"fmt"
+	"go_node_engine/jobs"
 	"go_node_engine/logger"
 	"go_node_engine/model"
 	"go_node_engine/virtualization"
@@ -87,7 +88,7 @@ func runMqttClient(opts *mqtt.ClientOptions) {
 }
 
 func publishToBroker(topic string, payload string) {
-	logger.InfoLogger().Printf("MQTT - publish to - %s - the payload - %s", topic, payload)
+	// logger.InfoLogger().Printf("MQTT - publish to - %s - the payload - %s", topic, payload)
 	token := mainMqttClient.Publish(fmt.Sprintf("nodes/%s/%s", clientID, topic), 1, false, payload)
 	if token.WaitTimeout(time.Second*5) && token.Error() != nil {
 		logger.ErrorLogger().Printf("ERROR: MQTT PUBLISH: %s", token.Error())
@@ -135,6 +136,15 @@ func deleteHandler(client mqtt.Client, msg mqtt.Message) {
 
 func updateCadenceHandler(client mqtt.Client, msg mqtt.Message) {
 	logger.InfoLogger().Printf("Received update cadence request with payload: %s", string(msg.Payload()))
+	cadence := model.Cadence{}
+	err := json.Unmarshal(msg.Payload(), &cadence)
+	if err != nil {
+		logger.ErrorLogger().Printf("ERROR: unable to unmarshal cadence request: %v", err)
+		return
+	}
+	duration := time.Duration(cadence.Cadence) * time.Microsecond
+	fmt.Println("updating duration", duration)
+	jobs.UpdateCadence(duration)
 }
 
 func ReportServiceStatus(service model.Service) {

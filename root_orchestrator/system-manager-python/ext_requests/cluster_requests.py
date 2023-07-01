@@ -72,3 +72,58 @@ def cluster_request_to_move_within_cluster(cluster_obj, job_id, node_from, node_
         return 1
     except requests.exceptions.RequestException as e:
         print('Calling Cluster Orchestrator /api/move not successful.')
+
+def cluster_request_to_get_aoi(cluster_id):
+    print('getting cluster aoi', cluster_id)
+    cluster = mongo_find_cluster_by_id(cluster_id)
+    try:
+        cluster_addr = 'http://' + cluster.get('ip') + ':' + str(cluster.get('port')) + '/api/aoi/'
+        resp = requests.get(cluster_addr)
+        print(resp)
+        return resp
+    except requests.exceptions.RequestException as e:
+        print('Calling /api/aoi/ not successful:', e)
+
+def cluster_request_to_reset_aoi(cluster_id):
+    print('resetting cluster aoi', cluster_id)
+    cluster = mongo_find_cluster_by_id(cluster_id)
+    try:
+        cluster_addr = 'http://' + cluster.get('ip') + ':' + str(cluster.get('port')) + '/api/aoi/'
+        resp = requests.delete(cluster_addr)
+        print(resp)
+        return resp
+    except requests.exceptions.RequestException as e:
+        print('Calling /api/aoi/ not successful:', e)
+
+def cluster_request_to_update_cadence(cluster_id, node_id, cadence):
+    print('updating node cadence', node_id, cadence)
+    cluster = mongo_find_cluster_by_id(cluster_id)
+    try:
+        cluster_addr = 'http://' + cluster.get('ip') + ':' + str(cluster.get('port')) + '/api/update/' + node_id + '/cadence'
+        resp = requests.put(cluster_addr, json={'cadence': cadence})
+        print(resp)
+        return resp
+    except requests.exceptions.RequestException as e:
+        print('Calling api/update/cadence not successful:', e)
+
+def cluster_request_to_get_nodes(cluster_id):
+    print('getting all nodes', cluster_id)
+    cluster = mongo_find_cluster_by_id(cluster_id)
+    try:
+        cluster_addr = 'http://' + cluster.get('ip') + ':' + str(cluster.get('port')) + '/api/nodes/'
+        resp = requests.get(cluster_addr)
+        print(resp)
+        return resp
+    except requests.exceptions.RequestException as e:
+        print('Calling /api/nodes/ to GET not successful:', e)
+
+def cluster_request_to_delete_all_nodes(cluster_id):
+    print('deleting all nodes', cluster_id)
+    cluster = mongo_find_cluster_by_id(cluster_id)
+    try:
+        cluster_addr = 'http://' + cluster.get('ip') + ':' + str(cluster.get('port')) + '/api/nodes/'
+        resp = requests.delete(cluster_addr)
+        print(resp)
+        return resp
+    except requests.exceptions.RequestException as e:
+        print('Calling /api/nodes/ to DELETE not successful:', e)

@@ -133,22 +133,21 @@ def mongo_aggregate_node_information(TIME_INTERVAL):
 
         # if it is not older than TIME_INTERVAL
         try:
-            if n.get('last_modified_timestamp') >= (datetime.now().timestamp() - TIME_INTERVAL):
-                cumulative_cpu += n.get('current_cpu_percent', 0)
-                cumulative_cpu_cores += n.get('current_cpu_cores_free', 0)
-                cumulative_memory += n.get('current_memory_percent', 0)
-                cumulative_memory_in_mb += n.get('current_free_memory_in_MB', 0)
-                gpu_info = n.get('gpu_info')
-                gpu_cores = 0
-                if gpu_info:
-                    gpu_cores = len(gpu_info)
-                gpu_percent += n.get('gpu_percent', 0)
-                number_of_active_nodes += 1
-                for t in n.get('node_info').get('technology'):
-                    technology.append(t) if t not in technology else technology
-
-            else:
-                print('Node {0} is inactive.'.format(n.get('_id')))    
+            # TEMP: if n.get('last_modified_timestamp') >= (datetime.now().timestamp() - TIME_INTERVAL):
+            cumulative_cpu += n.get('current_cpu_percent', 0)
+            cumulative_cpu_cores += n.get('current_cpu_cores_free', 0)
+            cumulative_memory += n.get('current_memory_percent', 0)
+            cumulative_memory_in_mb += n.get('current_free_memory_in_MB', 0)
+            gpu_info = n.get('gpu_info')
+            gpu_cores = 0
+            if gpu_info:
+                gpu_cores = len(gpu_info)
+            gpu_percent += n.get('gpu_percent', 0)
+            number_of_active_nodes += 1
+            for t in n.get('node_info').get('technology'):
+                technology.append(t) if t not in technology else technology
+            # TEMP: else:
+            #     print('Node {0} is inactive.'.format(n.get('_id')))    
         except Exception as e:
             print("Problem during the aggregation of the data, skipping the node: ", str(n), " - because - ", str(e))
 

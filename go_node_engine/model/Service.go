@@ -18,6 +18,10 @@ type Service struct {
 	Pid          int
 }
 
+type Cadence struct {
+	Cadence int `json:"cadence"`
+}
+
 type Resources struct {
 	Cpu      string `json:"cpu"`
 	Memory   string `json:"memory"`

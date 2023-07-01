@@ -40,6 +40,7 @@ type Node struct {
 	Overlay        bool
 	NetManagerPort int
 	Timestamp      int64 `json:"timestamp"`
+	MessageSeq     int   `json:"message_seq"`
 }
 
 var once sync.Once
@@ -68,6 +69,7 @@ func GetDynamicInfo() Node {
 		MemoryUsed: node.MemoryUsed,
 		MemoryMB:   node.MemoryMB,
 		Timestamp:  time.Now().UnixMilli(),
+		MessageSeq: 0, // placeholder to be changed in later call site
 	}
 }
 
@@ -77,13 +79,23 @@ func EnableOverlay(port int) {
 }
 
 func (n *Node) updateDynamicInfo() {
-	n.CpuUsage = getAvgCpuUsage()
+	// n.CpuUsage = getAvgCpuUsage()
+
+	n.CpuUsage = getIntervalCpuUsage()
 	n.Ip = getIp()
 	n.MemoryMB = getMemoryMB()
 	n.MemoryUsed = getMemoryUsage()
 	n.DiskInfo = getDiskinfo()
 	n.NetworkInfo = getNetworkInfo()
-	n.GpuInfo = getGpuInfo()
+	// n.GpuInfo = getGpuInfo()
+
+	// n.CpuUsage = 0
+	// n.Ip = ""
+	// n.MemoryMB = 0
+	// n.MemoryUsed = 0
+	// n.DiskInfo = nil
+	// n.NetworkInfo = nil
+	n.GpuInfo = nil
 }
 
 func SetNodeId(id string) {
@@ -146,6 +158,14 @@ func getAvgCpuUsage() float64 {
 		return 100
 	}
 	return avg.Load5
+}
+
+func getIntervalCpuUsage() float64 {
+	result, err := cpu.Percent(0, false)
+	if err != nil {
+		return 100
+	}
+	return result[0]
 }
 
 func getMemoryMB() int {

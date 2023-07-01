@@ -17,8 +17,8 @@ import (
 var clusterAddress = flag.String("a", "localhost", "Address of the cluster orchestrator without port")
 var clusterPort = flag.String("p", "10000", "Port of the cluster orchestrator")
 var overlayNetwork = flag.Int("n", -1, "Port of the NetManager component, if any. This enables the overlay network across nodes")
+var cadence = flag.Int("c", 2000000, "Cadence for node status updates")
 
-const STATUS_CHECK_INTERVAL = time.Second
 const SERVICES_MONITORING_CYCLE = time.Second * 2
 
 func main() {
@@ -44,7 +44,7 @@ func main() {
 	mqtt.InitMqtt(handshakeResult.NodeId, *clusterAddress, handshakeResult.MqttPort)
 
 	//starting node status background job.
-	jobs.NodeStatusUpdater(STATUS_CHECK_INTERVAL, mqtt.ReportNodeInformation)
+	jobs.NodeStatusUpdater(mqtt.ReportNodeInformation, *cadence)
 	//starting container resources background monitor.
 	jobs.StartServicesMonitoring(SERVICES_MONITORING_CYCLE, mqtt.ReportServiceResources)
 

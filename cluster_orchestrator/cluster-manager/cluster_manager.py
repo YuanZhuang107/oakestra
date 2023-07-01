@@ -1,17 +1,18 @@
 import os
+from bson import json_util
 from flask import Flask, request
 from flask_socketio import SocketIO, emit
 import json
 import socketio
 import sys
 from apscheduler.schedulers.background import BackgroundScheduler
+import aoi_manager
 import time
 from prometheus_client import start_http_server
 import threading
 from mongodb_client import mongo_init, mongo_upsert_node, mongo_find_job_by_system_id, \
-    mongo_update_job_status, mongo_find_node_by_name, mongo_find_job_by_id, mongo_remove_job_instance, \
-    mongo_create_new_job_instance
-from mqtt_client import mqtt_init, mqtt_publish_edge_deploy, mqtt_publish_edge_delete
+    mongo_update_job_status, find_all_nodes, mongo_dead_nodes
+from mqtt_client import mqtt_init, mqtt_publish_edge_deploy, mqtt_publish_edge_delete, mqtt_publish_cadence_update
 from cluster_scheduler_requests import scheduler_request_deploy, scheduler_request_replicate, scheduler_request_status
 from cm_logging import configure_logging
 from system_manager_requests import send_aggregated_info_to_sm, re_deploy_dead_services_routine
@@ -80,7 +81,9 @@ def get_scheduler_result_and_propagate_to_edge(system_job_id, instance_number):
     # print(request)
     app.logger.info('Incoming Request /api/result - received cluster_scheduler result')
     data = request.json  # get POST body
+    app.logger.info("data found?")
     app.logger.info(data)
+    app.logger.info(data.get('found', False))
 
     if data.get('found',False):
         resulting_node_id = data.get('node').get('_id')
@@ -113,6 +116,37 @@ def delete_service(system_job_id, instance_number):
 
     return "ok", 200
 
+@app.route('/api/aoi/', methods=['GET', 'DELETE'])
+def get_aoi():
+    """
+    get all available AoIs across all the nodes.
+    """
+    app.logger.info('Incoming Request /api/aoi/ - to get aoi...')
+    response = aoi_manager.get_aoi() if request.method == 'GET' else aoi_manager.reset_aoi()
+    print("resp from get_aoi", response)
+    return response, 200
+
+@app.route('/api/update/<node_id>/cadence', methods=['PUT'])
+def update_node_cadence(node_id):
+    """
+    Update a given node's status update cadence.
+    """
+    app.logger.info('Incoming Request /api/update/<node_id>/cadence - to update cadence...')
+    data = request.json
+    app.logger.info(data)
+    mqtt_publish_cadence_update(node_id, data.get('cadence'))
+    return "ok", 200
+
+@app.route('/api/nodes/', methods=['GET', 'DELETE'])
+def get_nodes():
+    """
+    get all the nodes.
+    """
+    app.logger.info('Incoming Request /api/nodes/ ' + request.method)
+    raw_response = list(find_all_nodes()) if request.method == 'GET' else mongo_dead_nodes()
+    response = json.loads(json_util.dumps(raw_response))
+    print("resp from " + request.method + " nodes", response)
+    return response, 200
 
 # ................ Scheduler Test ......................#
 # ......................................................#

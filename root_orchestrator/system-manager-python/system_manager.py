@@ -48,7 +48,7 @@ app.config['API_VERSION'] = 'v1'
 app.config["OPENAPI_URL_PREFIX"] = '/docs'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config["JWT_SECRET_KEY"] = token_hex(32)
-app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=10)
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=999)
 app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(days=7)
 app.config["RESET_TOKEN_EXPIRES"] = timedelta(hours=3)  # for password reset
 

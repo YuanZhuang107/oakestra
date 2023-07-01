@@ -18,6 +18,8 @@ def calculate(app, job):
         return greedy_load_balanced_algorithm(job=job)
 
 
+    
+
 def constraint_based_scheduling(job, constraints):
     nodes = mongo_find_all_active_nodes()
     for constraint in constraints:
