@@ -12,18 +12,34 @@ from aoi_manager import calculate_aoi, calculate_acp_aoi
 mqtt = None
 app = None
 
-
 def handle_connect(client, userdata, flags, rc):
     app.logger.info("MQTT - Connected to MQTT Broker")
     mqtt.subscribe('nodes/+/information')
     mqtt.subscribe('nodes/+/job')
     mqtt.subscribe('nodes/+/jobs/resources')
 
-
 def handle_logging(client, userdata, level, buf):
     if level == 'MQTT_LOG_ERR':
         app.logger.info('Error: {}'.format(buf))
 
+def handle_acp_message(payload):
+    arrival_ts = round(time.time() * 1000)
+    client_id = '64ba896b87b363723e31d048'
+    try:
+        cpu_used = payload.get('cpu')
+        mem_used = payload.get('memory')
+        cpu_cores_free = payload.get('free_cores')
+        memory_free_in_MB = payload.get('memory_free_in_MB')
+        timestamp = payload.get('timestamp')
+        msg_seq = payload.get('message_seq')
+        mongo_find_node_by_id_and_update_cpu_mem(client_id, cpu_used, cpu_cores_free, mem_used, memory_free_in_MB)
+        # The AOI for each node is currently stored in cluster orch's local memory;
+        # we could discuss the necessity of persisting this in MongoDB.
+        average_aoi = calculate_acp_aoi(client_id, timestamp, cpu_used, mem_used, len(payload), arrival_ts, msg_seq)
+        app.logger.info('\%\%\%\%\%\%\% Average AOI for client ' + client_id + ': ' + str(average_aoi) + '\%\%\%\%\%\%\%\%\%')
+    except Exception as e:
+        app.logger.error('Handling ACP+ message: unable to parse JSON')
+        app.logger.error(e)
 
 def handle_mqtt_message(client, userdata, message):
     arrival_ts = round(time.time() * 1000)

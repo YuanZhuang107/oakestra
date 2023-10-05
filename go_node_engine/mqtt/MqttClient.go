@@ -7,6 +7,7 @@ import (
 	"go_node_engine/logger"
 	"go_node_engine/model"
 	"go_node_engine/virtualization"
+	"os/exec"
 	"strings"
 	"time"
 
@@ -19,6 +20,11 @@ var clientID = ""
 var mainMqttClient mqtt.Client
 var BrokerUrl = ""
 var BrokerPort = ""
+var acpClient = exec.Command("./client_acp", "192.168.42.165", "6", "100", "2", "5", "49050")
+var acpClientIn, _ = acpClient.StdinPipe()
+
+// var acpClientOut, _ = acpClient.StdoutPipe()
+// var buf = bufio.NewReader(acpClientOut)
 
 var messagePubHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
 	logger.InfoLogger().Printf("DEBUG - Received message: %s from topic: %s\n", msg.Payload(), msg.Topic())
@@ -52,6 +58,12 @@ var connectLostHandler mqtt.ConnectionLostHandler = func(client mqtt.Client, err
 }
 
 func InitMqtt(clientid string, brokerurl string, brokerport string) {
+	// Initialize acp+ server pipes.
+	acpClient.Start()
+	acpClientIn.Write([]byte("initialize connection with Write\n"))
+	// buf := bufio.NewReader(acpClientOut)
+	// line, _, _ := buf.ReadLine()
+	// fmt.Println(string(line))
 
 	if clientID != "" {
 		logger.InfoLogger().Printf("Mqtt already initialized no need for any further initialization")
@@ -184,9 +196,16 @@ func ReportServiceResources(services []model.Resources) {
 }
 
 func ReportNodeInformation(node model.Node) {
+	fmt.Println("******* Edge node will report to acp client")
 	data, err := json.Marshal(node)
 	if err != nil {
 		logger.ErrorLogger().Printf("ERROR: error gathering node info")
 	}
-	publishToBroker("information", string(data))
+	// publishToBroker("information", string(data))
+	// We send node information to a local ACP+ client, which sends the data
+	// to a remote ACP+ server.
+	go acpClientIn.Write(append(data, '\n'))
+	fmt.Println("**************** Edge node wrote to acp client")
+	// line, _, _ := buf.ReadLine()
+	// fmt.Println("Edge node received response from acp client", string(line))
 }

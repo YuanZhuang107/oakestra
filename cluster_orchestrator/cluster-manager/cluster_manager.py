@@ -8,11 +8,14 @@ import sys
 from apscheduler.schedulers.background import BackgroundScheduler
 import aoi_manager
 import time
+import subprocess
+import threading
+import socket
 from prometheus_client import start_http_server
 import threading
 from mongodb_client import mongo_init, mongo_upsert_node, mongo_find_job_by_system_id, \
     mongo_update_job_status, find_all_nodes, mongo_dead_nodes
-from mqtt_client import mqtt_init, mqtt_publish_edge_deploy, mqtt_publish_edge_delete, mqtt_publish_cadence_update
+from mqtt_client import mqtt_init, mqtt_publish_edge_deploy, mqtt_publish_edge_delete, mqtt_publish_cadence_update, handle_acp_message
 from cluster_scheduler_requests import scheduler_request_deploy, scheduler_request_replicate, scheduler_request_status
 from cm_logging import configure_logging
 from system_manager_requests import send_aggregated_info_to_sm, re_deploy_dead_services_routine
@@ -20,6 +23,7 @@ from analyzing_workers import looking_for_dead_workers
 from my_prometheus_client import prometheus_init_gauge_metrics, prometheus_set_metrics
 from network_plugin_requests import *
 import service_operations
+import acp_server
 
 MY_PORT = os.environ.get('MY_PORT')
 
@@ -40,6 +44,32 @@ socketioserver = SocketIO(app, logger=True, engineio_logger=True)
 mongo_init(app)
 
 mqtt_init(app)
+
+def udp_server():
+    app.logger.info("ready to bind")
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
+    sock.bind(('0.0.0.0', 49050))
+    app.logger.info("binding successful")
+    while True:
+        data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
+        app.logger.info('cluster received data')
+        app.logger.info(data)
+        ack = acp_server.process_resp(data)
+        app.logger.info('cluster acked data')
+        app.logger.info(ack)
+        if (len(data) > 4):
+            try:
+                payload = json.loads(data[4:])
+                handle_acp_message(payload)
+            except Exception as e:
+                app.logger.error('Unable to parse message as byte array')
+                app.logger.error(e)
+        # Send ack back.
+        sock.sendto(ack, addr)
+
+# Start an UDP server to listen to ACP+ client messages.
+t = threading.Thread(target=udp_server)
+t.start()
 
 sio = socketio.Client()
 

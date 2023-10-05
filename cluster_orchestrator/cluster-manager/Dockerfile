@@ -31,5 +31,6 @@ ENV MQTT_BROKER_PORT=10003
 
 EXPOSE 10000
 EXPOSE 10001
+EXPOSE 49050/udp
 
 CMD ["python", "cluster_manager.py"]

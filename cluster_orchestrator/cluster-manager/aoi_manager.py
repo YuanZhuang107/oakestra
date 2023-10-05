@@ -123,4 +123,4 @@ def calculate_acp_aoi(client_id, departure_ts, cpu, mem, packet_size, arrival_ts
   if history_size >= 10:
     aoi_rate_by_client[client_id]['last_100_cadence_arrival'] = (arrival_ts - aoi_history_by_client[client_id][history_size - 10][1]) * 1000 / 10
     aoi_rate_by_client[client_id]['last_100_cadence_departure'] = (departure_ts - aoi_history_by_client[client_id][history_size - 10][0]) * 1000 / 10
-  return average_aoi, 
+  return average_aoi
