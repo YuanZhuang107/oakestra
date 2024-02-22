@@ -1,10 +1,11 @@
 from asyncio import current_task
 import time
-import subprocess
 from operator import itemgetter
+from datetime import datetime
 
 aoi_by_client = {}
-aoi_window_size = 12
+aoi_window_size = 50000
+# print("window_size=", aoi_window_size)
 
 aoi_history_by_client = {}
 aoi_history_size = 100000
@@ -53,10 +54,25 @@ def calculate_aoi(client_id, timestamp):
   return average_aoi, peak_aoi
 
 def get_aoi():
+  second = datetime.now().second
+  minute = datetime.now().minute
+  hour = datetime.now().hour
+  day = datetime.now().day
+  month = datetime.now().month
+  year = datetime.now().year
+  timestamp = str(year) + "_" + str(month) + "_" + str(day) + "_" + str(hour) + ":" + str(minute) + ":" + str(second)
+  aoi_log = open("/aoi_log/log_" + timestamp + ".txt", "w")
+  aoi_log.write(str(aoi_history_by_client))
+  aoi_log.close()
+
   return {
-    'history': aoi_history_by_client,
+    'history': 'written to file',
     'rate': aoi_rate_by_client,
   }
+  # return {
+  #   'history': aoi_history_by_client,
+  #   'rate': aoi_rate_by_client,
+  # }
 
 def reset_aoi():
   aoi_history_by_client.clear()
@@ -67,12 +83,12 @@ def reset_aoi():
     'rate': aoi_rate_by_client,
   }
 
-aoi_record_lookback = 1000
 aoi_record_by_client = {}
 
 def calculate_acp_aoi(client_id, departure_ts, cpu, mem, packet_size, arrival_ts, msg_seq):
   # arrival_ts = round(time.time() * 1000)
   delay = arrival_ts - departure_ts
+  print("delay: " + str(delay))
   current = {
     'delay': delay,
     'arrival_ts': arrival_ts,

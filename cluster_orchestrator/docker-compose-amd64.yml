@@ -81,6 +81,8 @@ services:
       - "10100:10100"
       - "10101:10101"
       - "49050:49050/udp"
+    volumes:
+      - ./aoi_log/:/aoi_log/
     environment:
       - MY_PORT=10100
       - SYSTEM_MANAGER_URL=${SYSTEM_MANAGER_URL}

@@ -23,7 +23,8 @@ def handle_logging(client, userdata, level, buf):
         app.logger.info('Error: {}'.format(buf))
 
 def handle_acp_message(payload):
-    arrival_ts = round(time.time() * 1000)
+    arrival_ts = time.time() * 1000
+    print("current timestamp: " + str(arrival_ts))
     client_id = '64ba896b87b363723e31d048'
     try:
         cpu_used = payload.get('cpu')
@@ -32,6 +33,9 @@ def handle_acp_message(payload):
         memory_free_in_MB = payload.get('memory_free_in_MB')
         timestamp = payload.get('timestamp')
         msg_seq = payload.get('message_seq')
+        age_estimate = payload.get('age_estimate')
+        backlog = payload.get('backlog')
+        print("age estimate: " + str(age_estimate) + ";       current average backlog: " + str(backlog))
         mongo_find_node_by_id_and_update_cpu_mem(client_id, cpu_used, cpu_cores_free, mem_used, memory_free_in_MB)
         # The AOI for each node is currently stored in cluster orch's local memory;
         # we could discuss the necessity of persisting this in MongoDB.
@@ -43,6 +47,7 @@ def handle_acp_message(payload):
 
 def handle_mqtt_message(client, userdata, message):
     arrival_ts = round(time.time() * 1000)
+    print("current timestamp: " + str(arrival_ts))
     data = dict(
         topic=message.topic,
         payload=message.payload.decode()
