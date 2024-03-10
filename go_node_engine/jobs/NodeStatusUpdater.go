@@ -3,7 +3,7 @@ package jobs
 import (
 	"fmt"
 	"go_node_engine/model"
-	"math"
+	// "math"
 	"sync"
 	"time"
 )
@@ -22,12 +22,12 @@ var msgSeq = 0
 
 func NodeStatusUpdater(statusUpdateHandler func(node model.Node), initialCadence int) {
 	cadence = time.Duration(initialCadence) * time.Microsecond
-	initialCadence = initialCadence
-	updateRoutine(statusUpdateHandler)
+	// initialCadence = initialCadence
+	// updateRoutine(statusUpdateHandler)
 
-	// once.Do(func() {
-	//  go updateRoutine(statusUpdateHandler)
-	// })
+	once.Do(func() {
+	 go updateRoutine(statusUpdateHandler)
+	})
 }
 
 func updateRoutine(statusUpdateHandler func(node model.Node)) {
@@ -37,11 +37,11 @@ func updateRoutine(statusUpdateHandler func(node model.Node)) {
 			nodeInfo := model.GetDynamicInfo()
 			nodeInfo.MessageSeq = msgSeq
 			msgSeq++
-			if math.Abs(nodeInfo.CpuUsage-lastCpuUsage) > CPU_DIFF_THRESHOLD || math.Abs(nodeInfo.MemoryUsed-lastMemUsage) > MEM_DIFF_THRESHOLD {
-				UpdateCadence(time.Duration(math.Round(initialCadence*1.2)) * time.Microsecond)
-			} else {
-				UpdateCadence(time.Duration(math.Round(initialCadence*0.8)) * time.Microsecond)
-			}
+			// if math.Abs(nodeInfo.CpuUsage-lastCpuUsage) > CPU_DIFF_THRESHOLD || math.Abs(nodeInfo.MemoryUsed-lastMemUsage) > MEM_DIFF_THRESHOLD {
+			// 	UpdateCadence(time.Duration(math.Round(initialCadence*1.2)) * time.Microsecond)
+			// } else {
+			// 	UpdateCadence(time.Duration(math.Round(initialCadence*0.8)) * time.Microsecond)
+			// }
 			statusUpdateHandler(nodeInfo)
 			lastCpuUsage = nodeInfo.CpuUsage
 			lastMemUsage = nodeInfo.MemoryUsed
