@@ -85,7 +85,7 @@ def reset_aoi():
 
 aoi_record_by_client = {}
 
-def calculate_acp_aoi(client_id, departure_ts, cpu, mem, packet_size, arrival_ts, msg_seq):
+def calculate_acp_aoi(client_id, departure_ts, cpu, mem, packet_size, arrival_ts, msg_seq, recent_age_estimate, diff_age_estimate, currentAverageBacklog, changeinBacklog, current_action, RTT_local, depTime_local, desiredChangeinLambda, calcLambda):
   # arrival_ts = round(time.time() * 1000)
   delay = arrival_ts - departure_ts
   print("delay: " + str(delay))
@@ -97,7 +97,7 @@ def calculate_acp_aoi(client_id, departure_ts, cpu, mem, packet_size, arrival_ts
     aoi_record_by_client[client_id] = []
     aoi_record_by_client[client_id].append(current)
     aoi_history_by_client[client_id] = []
-    aoi_history_by_client[client_id].append([departure_ts, arrival_ts, delay, msg_seq])
+    aoi_history_by_client[client_id].append([departure_ts, arrival_ts, delay, msg_seq, recent_age_estimate, diff_age_estimate, currentAverageBacklog, changeinBacklog, current_action, RTT_local, depTime_local, desiredChangeinLambda, calcLambda])
     aoi_rate_by_client[client_id] = {
       'last_100_cadence_arrival': 0,
       'last_100_cadence_departure': 0,
@@ -129,7 +129,7 @@ def calculate_acp_aoi(client_id, departure_ts, cpu, mem, packet_size, arrival_ts
 
   # Populate history for graph drawing.
   average_aoi = age_estimate / sum_denominator
-  aoi_history_by_client[client_id].append([departure_ts, arrival_ts, average_aoi, cpu, mem, packet_size, current_aoi, msg_seq])
+  aoi_history_by_client[client_id].append([departure_ts, arrival_ts, average_aoi, cpu, mem, packet_size, current_aoi, msg_seq, recent_age_estimate, diff_age_estimate, currentAverageBacklog, changeinBacklog, current_action, RTT_local, depTime_local, desiredChangeinLambda, calcLambda])
   history_size = len(aoi_history_by_client[client_id])
   if history_size > aoi_history_size:
     aoi_history_by_client[client_id].pop(0)

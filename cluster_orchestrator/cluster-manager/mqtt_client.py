@@ -33,13 +33,22 @@ def handle_acp_message(payload):
         memory_free_in_MB = payload.get('memory_free_in_MB')
         timestamp = payload.get('timestamp')
         msg_seq = payload.get('message_seq')
-        age_estimate = payload.get('age_estimate')
-        backlog = payload.get('backlog')
-        print("age estimate: " + str(age_estimate) + ";       current average backlog: " + str(backlog))
+
+        recent_age_estimate = payload.get('recent_age_estimate')
+        diff_age_estimate = payload.get('diff_age_estimate')
+        currentAverageBacklog = payload.get('currentAverageBacklog')
+        changeinBacklog = payload.get('changeinBacklog')
+        current_action = payload.get('current_action')
+        RTT_local = payload.get('RTT_local')
+        depTime_local = payload.get('depTime_local')
+        desiredChangeinLambda = payload.get('desiredChangeinLambda')
+        calcLambda = payload.get('calcLambda')
+
+        print("recent_age estimate: " + str(recent_age_estimate) + ";       current average backlog: " + str(currentAverageBacklog))
         mongo_find_node_by_id_and_update_cpu_mem(client_id, cpu_used, cpu_cores_free, mem_used, memory_free_in_MB)
         # The AOI for each node is currently stored in cluster orch's local memory;
         # we could discuss the necessity of persisting this in MongoDB.
-        average_aoi = calculate_acp_aoi(client_id, timestamp, cpu_used, mem_used, len(payload), arrival_ts, msg_seq)
+        average_aoi = calculate_acp_aoi(client_id, timestamp, cpu_used, mem_used, len(payload), arrival_ts, msg_seq, recent_age_estimate, diff_age_estimate, currentAverageBacklog, changeinBacklog, current_action, RTT_local, depTime_local, desiredChangeinLambda, calcLambda)
         app.logger.info('\%\%\%\%\%\%\% Average AOI for client ' + client_id + ': ' + str(average_aoi) + '\%\%\%\%\%\%\%\%\%')
     except Exception as e:
         app.logger.error('Handling ACP+ message: unable to parse JSON')
@@ -73,6 +82,7 @@ def handle_mqtt_message(client, userdata, message):
         memory_free_in_MB = payload.get('memory_free_in_MB')
         timestamp = payload.get('timestamp')
         msg_seq = payload.get('message_seq')
+        
         mongo_find_node_by_id_and_update_cpu_mem(client_id, cpu_used, cpu_cores_free, mem_used, memory_free_in_MB)
         # The AOI for each node is currently stored in cluster orch's local memory;
         # we could discuss the necessity of persisting this in MongoDB.

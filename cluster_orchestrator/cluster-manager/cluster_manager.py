@@ -56,7 +56,6 @@ def udp_server():
         app.logger.info(data)
         ack = acp_server.process_resp(data)
         app.logger.info('cluster acked data')
-        app.logger.info(ack)
         if (len(data) > 4):
             try:
                 payload = json.loads(data[4:])
